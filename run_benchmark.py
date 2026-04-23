@@ -47,8 +47,14 @@ def main(
     test_examples: int = 3,
     use_gemini: bool = False,
     gemini_api_key: str = "",
+    use_openrouter: bool = False,
+    openrouter_api_key: str = "",
+    openrouter_model: str = "",
     model: str = "",
 ) -> None:
+    if use_gemini and use_openrouter:
+        raise typer.BadParameter("Use only one provider mode: --use-gemini or --use-openrouter.")
+
     if use_gemini:
         os.environ["OPENAI_BASE_URL"] = "https://generativelanguage.googleapis.com/v1beta/openai/"
         os.environ["REFLEXION_MODEL"] = model or "gemini-2.5-flash-lite"
@@ -59,6 +65,17 @@ def main(
         if not os.getenv("OPENAI_API_KEY"):
             raise typer.BadParameter(
                 "Gemini API key is missing. Provide --gemini-api-key or set GEMINI_API_KEY in .env."
+            )
+    elif use_openrouter:
+        os.environ["OPENAI_BASE_URL"] = "https://openrouter.ai/api/v1"
+        os.environ["REFLEXION_MODEL"] = openrouter_model or model or os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
+        if openrouter_api_key:
+            os.environ["OPENAI_API_KEY"] = openrouter_api_key
+        elif os.getenv("OPENROUTER_API_KEY"):
+            os.environ["OPENAI_API_KEY"] = os.getenv("OPENROUTER_API_KEY", "")
+        if not os.getenv("OPENAI_API_KEY"):
+            raise typer.BadParameter(
+                "OpenRouter API key is missing. Provide --openrouter-api-key or set OPENROUTER_API_KEY in .env."
             )
     elif model:
         os.environ["REFLEXION_MODEL"] = model

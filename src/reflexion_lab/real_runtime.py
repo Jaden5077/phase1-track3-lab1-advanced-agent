@@ -19,9 +19,20 @@ FAILURE_MODE_BY_QID: dict[str, str] = {}
 
 
 def _client() -> OpenAI:
+    base_url = os.getenv("OPENAI_BASE_URL", "http://127.0.0.1:11434/v1")
+    default_headers: dict[str, str] = {}
+    if "openrouter.ai" in base_url:
+        site_url = os.getenv("OPENROUTER_SITE_URL", "").strip()
+        app_name = os.getenv("OPENROUTER_APP_NAME", "").strip()
+        if site_url:
+            default_headers["HTTP-Referer"] = site_url
+        if app_name:
+            default_headers["X-Title"] = app_name
+
     return OpenAI(
-        base_url=os.getenv("OPENAI_BASE_URL", "http://127.0.0.1:11434/v1"),
+        base_url=base_url,
         api_key=os.getenv("OPENAI_API_KEY", "ollama"),
+        default_headers=default_headers or None,
     )
 
 
