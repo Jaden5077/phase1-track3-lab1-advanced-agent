@@ -44,7 +44,24 @@ def main(
     reflexion_attempts: int = 3,
     test_mode: bool = False,
     test_examples: int = 3,
+    use_gemini: bool = False,
+    gemini_api_key: str = "",
+    model: str = "",
 ) -> None:
+    if use_gemini:
+        os.environ["OPENAI_BASE_URL"] = "https://generativelanguage.googleapis.com/v1beta/openai/"
+        os.environ["REFLEXION_MODEL"] = model or "gemini-2.5-flash-lite"
+        if gemini_api_key:
+            os.environ["OPENAI_API_KEY"] = gemini_api_key
+        elif os.getenv("GEMINI_API_KEY"):
+            os.environ["OPENAI_API_KEY"] = os.getenv("GEMINI_API_KEY", "")
+        if not os.getenv("OPENAI_API_KEY"):
+            raise typer.BadParameter(
+                "Gemini API key is missing. Provide --gemini-api-key or set GEMINI_API_KEY in .env."
+            )
+    elif model:
+        os.environ["REFLEXION_MODEL"] = model
+
     examples = load_dataset(dataset)
     if test_mode:
         if test_examples <= 0:
@@ -59,6 +76,8 @@ def main(
     print(f"[bold]PID[/bold]: {os.getpid()}")
     print(f"[bold]Dataset[/bold]: {dataset} | [bold]Examples[/bold]: {len(examples)}")
     print(f"[bold]Output[/bold]: {out_path}")
+    print(f"[bold]Model[/bold]: {os.getenv('REFLEXION_MODEL', 'qwen2.5-coder')}")
+    print(f"[bold]Base URL[/bold]: {os.getenv('OPENAI_BASE_URL', 'http://127.0.0.1:11434/v1')}")
     print("[yellow]Press Ctrl+C to stop gracefully (partial results will be saved).[/yellow]")
 
     react = ReActAgent()

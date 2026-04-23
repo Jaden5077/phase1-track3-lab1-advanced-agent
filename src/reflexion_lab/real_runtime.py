@@ -31,6 +31,8 @@ def _model() -> str:
     alias_map = {
         "qwen2.5coder": "qwen2.5-coder",
         "qwen2.5-coder": "qwen2.5-coder",
+        "gemini2.5flashlite": "gemini-2.5-flash-lite",
+        "gemini-2.5-flash-lite": "gemini-2.5-flash-lite",
     }
     return alias_map.get(normalized, raw)
 
