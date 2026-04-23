@@ -1,4 +1,5 @@
 from __future__ import annotations
+from datetime import datetime
 import json
 import os
 from pathlib import Path
@@ -67,10 +68,10 @@ def main(
         if test_examples <= 0:
             raise typer.BadParameter("--test-examples must be > 0 when --test-mode is enabled.")
         examples = examples[:test_examples]
-        # In test mode, write to a different output folder by default
-        # so it does not override standard benchmark artifacts.
-        if out_dir == "outputs/sample_run":
-            out_dir = f"outputs/test_run_{len(examples)}"
+        # Always create a timestamped test output folder to avoid overwriting.
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base_out_dir = Path("outputs/test_runs") if out_dir == "outputs/sample_run" else Path(out_dir)
+        out_dir = str(base_out_dir / f"test_run_{len(examples)}_{timestamp}")
 
     out_path = Path(out_dir)
     print(f"[bold]PID[/bold]: {os.getpid()}")
