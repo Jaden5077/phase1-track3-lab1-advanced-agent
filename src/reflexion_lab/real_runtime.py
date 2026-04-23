@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 
 from dotenv import load_dotenv
@@ -25,11 +26,23 @@ def _client() -> OpenAI:
 
 
 def _model() -> str:
-    return os.getenv("REFLEXION_MODEL", "qwen2.5-coder")
+    raw = os.getenv("REFLEXION_MODEL", "qwen2.5-coder").strip()
+    normalized = re.sub(r"\s+", "", raw.lower())
+    alias_map = {
+        "qwen2.5coder": "qwen2.5-coder",
+        "qwen2.5-coder": "qwen2.5-coder",
+    }
+    return alias_map.get(normalized, raw)
+
+
+def _strip_think_blocks(text: str) -> str:
+    # Some local reasoning models may include hidden thoughts in XML-like tags.
+    cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL | re.IGNORECASE)
+    return cleaned.strip()
 
 
 def _extract_json(text: str) -> dict:
-    body = text.strip()
+    body = _strip_think_blocks(text)
     if body.startswith("```"):
         lines = body.splitlines()
         if lines and lines[-1].strip() == "```":
@@ -75,7 +88,7 @@ def actor_answer(
         max_tokens=80,
     )
     latency_ms = int((time.perf_counter() - t0) * 1000)
-    answer = (response.choices[0].message.content or "").strip()
+    answer = _strip_think_blocks(response.choices[0].message.content or "")
     for prefix in ("Answer:", "Final answer:", "The answer is"):
         if answer.lower().startswith(prefix.lower()):
             answer = answer[len(prefix) :].strip()
@@ -108,7 +121,7 @@ def evaluator(example: QAExample, answer: str) -> JudgeResult:
             temperature=0,
             max_tokens=250,
         )
-        data = _extract_json((response.choices[0].message.content or "").strip())
+        data = _extract_json(response.choices[0].message.content or "")
         score = 1 if int(data.get("score", 0)) == 1 else 0
         return JudgeResult(
             score=score,
@@ -146,7 +159,7 @@ def reflector(example: QAExample, attempt_id: int, judge: JudgeResult) -> Reflec
             temperature=0.3,
             max_tokens=250,
         )
-        data = _extract_json((response.choices[0].message.content or "").strip())
+        data = _extract_json(response.choices[0].message.content or "")
         return ReflectionEntry(
             attempt_id=attempt_id,
             failure_reason=str(data.get("failure_reason", judge.reason)),

@@ -14,15 +14,17 @@ Given (question, gold_answer, predicted_answer), return JSON with fields:
 - reason: concise explanation of the judgment
 - missing_evidence: list of missing reasoning/evidence steps
 - spurious_claims: list of unsupported or incorrect claims in predicted_answer
-Do not return any text outside JSON.
+Output must be valid JSON only.
+No markdown, no code fences, no additional commentary.
 """
 
 REFLECTOR_SYSTEM = """
 You are a reflection coach for iterative QA.
 Input includes the failed attempt and evaluator feedback.
-Return a compact reflection containing:
+Return valid JSON with exactly these keys:
 - failure_reason
-- lesson learned from the failure
-- next_strategy for the next attempt
+- lesson
+- next_strategy
+Each value must be a short string.
 Focus on actionable, concrete strategy to fix multi-hop errors.
 """
