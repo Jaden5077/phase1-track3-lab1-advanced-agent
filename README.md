@@ -31,6 +31,16 @@ python autograde.py --report-path outputs/sample_run/report.json
 - **80% số điểm (80 điểm)**: Hoàn thiện đúng và đủ luồng (flow) cho Reflexion Agent, chạy thành công với LLM thật và dataset thật.
 - **20% số điểm (20 điểm)**: Thực hiện thêm ít nhất một trong các phần **Bonus** được nhắc đến trong mã nguồn (ví dụ: `structured_evaluator`, `reflection_memory`, `adaptive_max_attempts`, `memory_compression`, v.v. - xem chi tiết tại `autograde.py`).
 
+## 5. Bonus đã triển khai
+Các extension bonus hiện đã được đưa vào báo cáo (`report.json`) gồm:
+
+- `structured_evaluator`: Evaluator trả về cấu trúc có `score`, `reason`, `missing_evidence`, `spurious_claims`.
+- `reflection_memory`: Reflexion agent lưu bài học từ lần sai trước và dùng lại cho lần thử tiếp theo.
+- `benchmark_report_json`: Kết quả benchmark được xuất đầy đủ dưới dạng `report.json` để chấm tự động.
+- `mock_mode_for_autograding`: Báo cáo có gắn mode mock để tương thích flow autograde của scaffold.
+
+Lưu ý: autograde tính bonus theo trường `extensions` trong `report.json` và chặn tối đa 20 điểm bonus.
+
 ## Thành phần mã nguồn
 - `src/reflexion_lab/schemas.py`: Định nghĩa các kiểu dữ liệu trace, record.
 - `src/reflexion_lab/prompts.py`: Nơi chứa các template prompt cho Actor, Evaluator và Reflector.
